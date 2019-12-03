@@ -29,6 +29,9 @@ def create_animation_pictures(path, X, Y, Z, graph_type="contour", graph_details
         plt.savefig(ani_path + "/{}.png".format(i))
     return ani_path
 
+# def create_animation_1d_pictures(path, X, Y):
+
+
 def create_overlay_animation_pictures(path, X, Y, Z, Z1, graph_type="contour", graph_details={}):
     """
     path: path[:, 0]=path_x, path[:, 1]=path_y, path[:, 2]=path_z"""

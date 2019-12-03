@@ -47,9 +47,19 @@ def GradGibbs(x, U, grad_U, sig):
 
 
 def grad_one_D_shallow(inp):
+    out_shape = inp.shape
+    inp = inp.flatten()
 
-
-    X = [[0, 0], [0.5, 0.2], [-0.5, 0.2], [1, 0.7], [-1, 0.7], [1.5, 0], [-1.5, 0], [2, 1], [-2, 1]]
+    X = [[0, 0],
+         [0.25, 0.05], [-0.25, 0.05],
+         [0.5, 0.15], [-0.5, 0.15],
+         [1, 1], [-1, 1],
+         [1.4, 0.2], [-1.4, 0.2],
+         [1.5, 0], [-1.5, 0],
+         [2, 1], [-2, 1],
+         [2.2, 1], [-2.2, 1],
+         [2.5, 0.5], [-2.5, -0.5],
+         ]
 
     equations = np.array([[point[0] ** i for i in range(len(X))] for point in X])
     values = np.array([point[1] for point in X])
@@ -62,15 +72,19 @@ def grad_one_D_shallow(inp):
 
     res = [p(x) for x in inp]
 
-    return np.array(res)
+    return np.array(res).reshape(out_shape)
 
 
 def one_D_shallow(inp):
     """
+    Will apply poly function to every entry of input array
 
-    :param inp: 1D numpy
-    :return: 1D numpy
+    :param inp: numpy
+    :return: numpy
     """
+    out_shape = inp.shape
+    inp = inp.flatten()
+
     X = [[0, 0],
          [0.25, 0.05], [-0.25, 0.05],
          [0.5, 0.15], [-0.5, 0.15],
@@ -91,7 +105,7 @@ def one_D_shallow(inp):
 
     res = [p(x) for x in inp]
 
-    return np.array(res)
+    return np.array(res).reshape(out_shape)
 
 
 
