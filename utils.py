@@ -34,7 +34,7 @@ def particles_converged(p_paths, epsilon):
 def hyper_cube_enforcer(upper_bound=32.768, lower_bound=-32.768):
     def helper(x):
         filter_lower = x < lower_bound
-        x[filter_lower] = lower_bound +1
+        x[filter_lower] = lower_bound + 1
 
         filter_upper = x > upper_bound
         x[filter_upper] = upper_bound - 1
