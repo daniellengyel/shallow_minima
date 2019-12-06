@@ -1,7 +1,57 @@
-import numpy as np
+import autograd.numpy as np
 from Kernels import *
 from utils import *
 from Functions import Gibbs, GradGibbs
+
+
+def diffusion_resmpaling(U, grad_U, process, total_iter, tau, verbose=False, domain_enforcer=None):
+    p_start = process["start"]
+    p_gamma = process["gamma"]
+    p_temperature = process["temperature"]
+    p_num_particles = len(p_start)
+    p_epsilon = process["epsilon"]
+    p_weight_func = process["weight_function"]
+    p_resample_func = process["resample_function"]
+
+    dim = len(p_start)
+
+    # init num_particles
+    all_paths = []
+    p_weights = np.zeros(len(p_start))
+    curr_paths = [[np.array(p)] for p in p_start]
+
+    # Which t to use for diffusion?
+    for t in range(total_iter):
+        for t_tau in range(tau):
+            for i in range(p_num_particles):
+                # --- diffusion step ---
+                x_curr = curr_paths[i][-1]
+
+                x_next = x_curr + p_gamma(t) * (
+                    -grad_U(x_curr)) + p_temperature(t) * np.array(
+                    [[np.random.normal()] for _ in range(x_curr.shape[0])]).reshape(x_curr.shape)
+
+                if domain_enforcer is not None:
+                    x_next, went_outside_domain = domain_enforcer(x_next)
+
+                # ----
+
+                curr_paths[i].append(x_next)
+
+                # weight update
+                p_weights[i] += p_weight_func(U, grad_U, x_next)
+
+        # add paths
+        all_paths.append(curr_paths)
+        end_points = [p[-1] for p in curr_paths]
+
+        # resample particles
+        new_starting = list(p_resample_func(p_weights, end_points))
+        curr_paths = [[p] for p in new_starting]
+
+        p_weights = np.zeros(len(p_start))
+
+    return np.array(all_paths)
 
 
 def grad_descent(func, grad_func, x_curr, eps, gamma, start_t=0, end_t=float("inf"), verbose=False, domain_enforcer=None):

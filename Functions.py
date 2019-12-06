@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 from pypoly import Polynomial
 
 # input format: xs[j][i] gives the value of the jth dimension of the ith point.
@@ -107,6 +107,23 @@ def one_D_shallow(inp):
 
     return np.array(res).reshape(out_shape)
 
+def quad_sin(inp, params=None):
+    out_shape = inp[0].shape
+    inp = inp.flatten()
+
+    epsilon=params['epsilon']
+    res = (inp*np.sin(inp/epsilon)+0.1*inp)**2
+    return res.reshape(out_shape)
+
+
+def grad_quad_sin(inp, params=None):
+    out_shape = inp.shape
+    inp = inp.flatten()
+
+    epsilon = params['epsilon']
+    res = 2 * (inp*np.sin(inp/epsilon)+0.1*inp) * (np.sin(inp/epsilon) + inp * 1./epsilon * np.cos(inp/epsilon) + 0.1)
+    return res.reshape(out_shape)
+
 
 
 if __name__ == "__main__":
@@ -114,4 +131,4 @@ if __name__ == "__main__":
     g_out = Gibbs(x, AckleyProblem, 1)
     grad_g_out = GradGibbs(x, AckleyProblem, GradAckleyProblem, 1)
     print(g_out)
-    print(grad_g_out)
+  

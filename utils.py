@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 
 
 #define potential for second proccess
@@ -31,13 +31,13 @@ def particles_converged(p_paths, epsilon):
             return False
     return True
 
-def hyper_cube_enforcer(upper_bound=32.768, lower_bound=-32.768):
+def hyper_cube_enforcer(upper_bound=32.768, lower_bound=-32.768, reflective_strength=1):
     def helper(x):
         filter_lower = x < lower_bound
-        x[filter_lower] = lower_bound + 1
+        x[filter_lower] = lower_bound + reflective_strength
 
         filter_upper = x > upper_bound
-        x[filter_upper] = upper_bound - 1
+        x[filter_upper] = upper_bound - reflective_strength
         return x, any(filter_lower) or any(filter_upper)
     return helper
 
