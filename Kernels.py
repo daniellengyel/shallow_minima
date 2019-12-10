@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 
 def d_gaussian(x, y, sig):
     d_abs = -1 if x < y else 1
