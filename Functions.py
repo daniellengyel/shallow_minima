@@ -108,12 +108,13 @@ def one_D_shallow(inp):
     return np.array(res).reshape(out_shape)
 
 def quad_sin(inp, params=None):
-    out_shape = inp[0].shape
+    out_shape = inp.shape
     inp = inp.flatten()
 
-    epsilon=params['epsilon']
+    epsilon = params['epsilon']
     res = (inp*np.sin(inp/epsilon)+0.1*inp)**2
-    return res.reshape(out_shape)
+    res = res.reshape(out_shape)
+    return np.sum(res, axis=0)
 
 
 def grad_quad_sin(inp, params=None):
