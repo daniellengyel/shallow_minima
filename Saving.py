@@ -242,18 +242,20 @@ def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name=""):
 
     available_colors = ["red", "green"]
 
+    num_tau, num_particles, tau, dim = all_paths.shape
+
     for i in range(len(all_paths)):
         curr_paths = all_paths[i]
 
         color_use = available_colors[i % len(available_colors)]
 
-        for j in range(len(curr_paths)):
+        for j in range(tau):
             fig, ax = plt.subplots()
             ax.plot(X, Y)
 
             ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use)
 
-            plt.savefig(ani_path + "/{}.png".format(i * len(curr_paths) + j))
+            plt.savefig(ani_path + "/{}.png".format(i * tau + j))
 
             plt.close(fig)
 

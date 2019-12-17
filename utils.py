@@ -38,7 +38,7 @@ def hyper_cube_enforcer(upper_bound=32.768, lower_bound=-32.768, reflective_stre
 
         filter_upper = x > upper_bound
         x[filter_upper] = upper_bound - reflective_strength
-        return x, any(filter_lower) or any(filter_upper)
+        return x, np.any(filter_lower) or np.any(filter_upper)
     return helper
 
 def percent_endpoint(x_star, end_points, epsilon):
@@ -54,6 +54,16 @@ def filter_to_goal(x_star, epsilon, analytics):
                                 ])
 
     return filter_distance
+
+def resample_positions_softmax(weights, positions, beta=1):
+    probabilities = softmax(weights, beta)
+    pos_filter =  np.random.choice(list(range(len(positions))), len(positions), p=probabilities)
+    return np.array(positions)[np.array(pos_filter)]
+
+def softmax(weights, beta=1):
+    sum_exp_weights = sum([np.exp(beta*w) for w in weights])
+    probabilities = np.array([np.exp(beta*w) for w in weights]) / sum_exp_weights
+    return probabilities
 
 
 if __name__ == "__main__":

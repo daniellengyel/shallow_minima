@@ -6,18 +6,23 @@ def d_gaussian(x, y, sig):
 
 
 def multi_gaussian(cov):
-    def multi_guassian_helper(x, y):
-        k = x.shape[0]
+    def multi_gaussian_helper(inp, mu):
+        """same mu for every datapoint given in ipn"""
+        k = inp.shape[0]
+        diff = (inp.T - mu).T
         return 1 / np.sqrt(pow(2 * np.pi, k) * np.linalg.det(cov)) * np.exp(
-            -0.5 * (x - y).T.dot(np.linalg.inv(cov).dot(x - y)))
+            -0.5 * np.sum(diff*(np.linalg.inv(cov).dot(diff)), axis=0))
+    return multi_gaussian_helper
 
-    return multi_guassian_helper
 
+def grad_multi_gaussian(cov):
+    def grad_gaussian_helper(inp, mu):
+        """respect to x"""
+        k = inp.shape[0]
+        diff = (inp.T - mu).T
 
-def grad_gaussian(cov):
-    def grad_gaussian_helper(x, y):
-        mg = multi_gaussian(cov)(x, y)
-        grad_term = - np.linalg.inv(cov).dot(x - y)
+        mg = multi_gaussian(cov)(inp, mu)
+        grad_term = - np.linalg.inv(cov).dot(diff)
         return mg * grad_term
 
     return grad_gaussian_helper

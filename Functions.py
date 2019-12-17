@@ -1,5 +1,8 @@
 import autograd.numpy as np
 from pypoly import Polynomial
+from Kernels import *
+
+from autograd import grad
 
 # input format: xs[j][i] gives the value of the jth dimension of the ith point.
 # e.g. the ith point in xs is given by xs[:, i]
@@ -124,6 +127,26 @@ def grad_quad_sin(inp, params=None):
     epsilon = params['epsilon']
     res = 2 * (inp*np.sin(inp/epsilon)+0.1*inp) * (np.sin(inp/epsilon) + inp * 1./epsilon * np.cos(inp/epsilon) + 0.1)
     return res.reshape(out_shape)
+
+
+def flat_sharp_gaussian(inp):
+    dim = inp.shape[0]
+
+    flat_gaussian = multi_gaussian(10 * np.eye(dim))
+    sharp_gaussian = multi_gaussian(0.7 * np.eye(dim))
+    very_flat_gaussian = multi_gaussian(30 * np.eye(dim))  # to keep things rolling towards center
+    return -(flat_gaussian(inp, 5 * np.ones(dim)) + sharp_gaussian(inp, -5 * np.ones(dim)) + 2*very_flat_gaussian(inp,
+                                                                                                                np.zeros(
+                                                                                                                    dim)))
+def grad_flat_sharp_gaussian(inp):
+    dim = inp.shape[0]
+
+    flat_gaussian_grad = grad_multi_gaussian(10 * np.eye(dim))
+    sharp_gaussian_grad = grad_multi_gaussian(0.7 * np.eye(dim))
+    very_flat_gaussian_grad = grad_multi_gaussian(30 * np.eye(dim))  # to keep things rolling towards center
+    return -(flat_gaussian_grad(inp, 5 * np.ones(dim)) + sharp_gaussian_grad(inp, -5 * np.ones(dim)) + 2*very_flat_gaussian_grad(inp,
+                                                                                                                np.zeros(
+                                                                                                                    dim)))
 
 
 
