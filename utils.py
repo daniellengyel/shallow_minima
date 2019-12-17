@@ -57,7 +57,7 @@ def filter_to_goal(x_star, epsilon, analytics):
 
 def resample_positions_softmax(weights, positions, beta=1):
     probabilities = softmax(weights, beta)
-    pos_filter =  np.random.choice(list(range(len(positions))), len(positions), p=probabilities)
+    pos_filter = np.random.choice(list(range(len(positions))), len(positions), p=probabilities)
     return np.array(positions)[np.array(pos_filter)]
 
 def softmax(weights, beta=1):

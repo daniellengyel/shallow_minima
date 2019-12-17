@@ -40,7 +40,7 @@ def diffusion_resampling(U, grad_U, process, total_iter, tau, verbose=False, dom
 
         # add paths
         all_paths.append(curr_paths)
-        end_points = [p[-1] for p in curr_paths]
+        end_points = curr_paths[:, -1]
 
         # resample particles
         new_starting = list(p_resample_func(p_weights, end_points))
