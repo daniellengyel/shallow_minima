@@ -4,7 +4,7 @@ from utils import *
 from Functions import Gibbs, GradGibbs
 
 
-def diffusion_resmpaling(U, grad_U, process, total_iter, tau, verbose=False, domain_enforcer=None):
+def diffusion_resampling(U, grad_U, process, total_iter, tau, verbose=False, domain_enforcer=None):
     p_start = process["start"]
     p_gamma = process["gamma"]
     p_temperature = process["temperature"]
@@ -18,36 +18,33 @@ def diffusion_resmpaling(U, grad_U, process, total_iter, tau, verbose=False, dom
     # init num_particles
     all_paths = []
     p_weights = np.zeros(len(p_start))
-    curr_paths = [[np.array(p)] for p in p_start]
+    curr_paths = np.array([[np.array(p)] for p in p_start])
 
     # Which t to use for diffusion?
     for t in range(total_iter):
         for t_tau in range(tau):
-            for i in range(p_num_particles):
-                # --- diffusion step ---
-                x_curr = curr_paths[i][-1]
+            # --- diffusion step ---
+            x_curr = np.array(curr_paths[:, -1])
 
-                x_next = x_curr + p_gamma(t) * (
-                    -grad_U(x_curr)) + p_temperature(t) * np.array(
-                    [[np.random.normal()] for _ in range(x_curr.shape[0])]).reshape(x_curr.shape)
+            x_next = x_curr + p_gamma(t) * (
+                -grad_U(x_curr.T).T) + p_temperature(t) * np.random.normal(size=x_curr.shape)
 
-                if domain_enforcer is not None:
-                    x_next, went_outside_domain = domain_enforcer(x_next)
+            if domain_enforcer is not None:
+                x_next, went_outside_domain = domain_enforcer(x_next)
 
-                # ----
+            # ----
+            curr_paths = np.concatenate([curr_paths, x_next.reshape([curr_paths.shape[0], 1, curr_paths.shape[2]])], axis=1)
 
-                curr_paths[i].append(x_next)
-
-                # weight update
-                p_weights[i] += p_weight_func(U, grad_U, x_next)
+            # weight update
+            p_weights += p_weight_func(U, grad_U, x_curr)
 
         # add paths
         all_paths.append(curr_paths)
-        end_points = [p[-1] for p in curr_paths]
+        end_points = curr_paths[:, -1]
 
         # resample particles
         new_starting = list(p_resample_func(p_weights, end_points))
-        curr_paths = [[p] for p in new_starting]
+        curr_paths = np.array([[p] for p in new_starting])
 
         p_weights = np.zeros(len(p_start))
 

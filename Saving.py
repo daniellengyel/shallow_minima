@@ -233,6 +233,93 @@ def load_analytics_paths(path):
     return analytics, paths
 
 
+def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name=""):
+    """path: path[:, 0]=path_x, path[:, 1]=path_y"""
+    if not os.path.isdir("./tmp"):
+        os.mkdir("./tmp")
+    ani_path = "./tmp/1d_{0}_{1}".format(folder_name, time.time())
+    os.mkdir(ani_path)
+
+    available_colors = ["red", "green"]
+
+    num_tau, num_particles, tau, dim = all_paths.shape
+
+    for i in range(len(all_paths)):
+        curr_paths = all_paths[i]
+
+        color_use = available_colors[i % len(available_colors)]
+
+        for j in range(tau):
+            fig, ax = plt.subplots()
+            ax.plot(X, Y)
+
+            ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use)
+
+            plt.savefig(ani_path + "/{}.png".format(i * tau + j))
+
+            plt.close(fig)
+
+    return ani_path
+
+
+def create_animation_2d_pictures_particles_sampling(all_paths, X, Y, Z, folder_name="", graph_type="contour", graph_details={}):
+    """path: path[:, 0]=path_x, path[:, 1]=path_y"""
+    if not os.path.isdir("./tmp"):
+        os.mkdir("./tmp")
+    ani_path = "./tmp/2d_particles_{0}_{1}".format(folder_name, time.time())
+    os.mkdir(ani_path)
+
+    available_colors = ["red", "green"]
+
+    for i in range(len(all_paths)):
+        curr_paths = all_paths[i]
+
+        color_use = available_colors[i % len(available_colors)]
+
+        for j in range(len(curr_paths)):
+            fig, ax = plt.subplots()
+
+            if graph_type == "contour":
+                ax.contour(X, Y, Z, graph_details["lines"])
+            else:
+                ax.imshow(Z, cmap=plt.cm.gist_earth_r, extent=[X[0][0], X[0][-1], Y[-1][0], Y[0][0]],
+                          interpolation=graph_details["interpolation"])
+
+            ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use)
+
+            plt.savefig(ani_path + "/{}.png".format(i * len(curr_paths) + j))
+
+            plt.close(fig)
+
+    return ani_path
+
+def create_animation_2d_pictures_particles_interaction(all_paths, X, Y, Z, folder_name="", graph_type="contour", graph_details={}):
+    """path: path[:, 0]=path_x, path[:, 1]=path_y"""
+    if not os.path.isdir("./tmp"):
+        os.mkdir("./tmp")
+    ani_path = "./tmp/2d_particles_{0}_{1}".format(folder_name, time.time())
+    os.mkdir(ani_path)
+
+
+    for j in range(len(all_paths[0])):
+
+        fig, ax = plt.subplots()
+
+        if graph_type == "contour":
+            ax.contour(X, Y, Z, graph_details["lines"])
+        else:
+            ax.imshow(Z, cmap=plt.cm.gist_earth_r, extent=[X[0][0], X[0][-1], Y[-1][0], Y[0][0]],
+                      interpolation=graph_details["interpolation"])
+
+        ax.plot(all_paths[:, j, 0], all_paths[:, j, 1], "o", color="orange")
+
+        plt.savefig(ani_path + "/{}.png".format(j))
+
+        plt.close(fig)
+
+    return ani_path
+
+
 
 
 
