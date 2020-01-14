@@ -36,7 +36,7 @@ def diffusion_resampling(U, grad_U, process, total_iter, tau, verbose=False, dom
             curr_paths = np.concatenate([curr_paths, x_next.reshape([curr_paths.shape[0], 1, curr_paths.shape[2]])], axis=1)
 
             # weight update
-            p_weights += p_weight_func(U, grad_U, x_curr)
+            p_weights = p_weight_func(U, grad_U, x_curr, p_weights)
 
         # add paths
         all_paths.append(curr_paths)

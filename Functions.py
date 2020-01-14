@@ -85,7 +85,7 @@ def one_D_shallow(inp):
     :param inp: numpy
     :return: numpy
     """
-    out_shape = inp.shape
+    out_shape = inp.shape[1]
     inp = inp.flatten()
 
     X = [[0, 0],

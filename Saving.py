@@ -233,7 +233,7 @@ def load_analytics_paths(path):
     return analytics, paths
 
 
-def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name=""):
+def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name="", graph_details={"p_size": 1, "density_function": None}):
     """path: path[:, 0]=path_x, path[:, 1]=path_y"""
     if not os.path.isdir("./tmp"):
         os.mkdir("./tmp")
@@ -244,20 +244,37 @@ def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name=""):
 
     num_tau, num_particles, tau, dim = all_paths.shape
 
+    density_function = graph_details["density_function"]
+
+
+
     for i in range(len(all_paths)):
         curr_paths = all_paths[i]
 
         color_use = available_colors[i % len(available_colors)]
 
         for j in range(tau):
-            fig, ax = plt.subplots()
-            ax.plot(X, Y)
 
-            ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use)
+            if density_function is not None:
+                fig = plt.figure(constrained_layout=True)
+                gs = fig.add_gridspec(4, 1)
+                ax = fig.add_subplot(gs[1:4, :])
+                ax2 = fig.add_subplot(gs[0, :])
+            else:
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1)
+
+            if density_function is not None:
+                Y_density = density_function(X, curr_paths[:, j, 0])
+                ax2.plot(X, Y_density)
+
+            ax.plot(X, Y)
+            ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use, markersize=graph_details["p_size"])
 
             plt.savefig(ani_path + "/{}.png".format(i * tau + j))
 
-            plt.close(fig)
+            plt.close()
+
 
     return ani_path
 
