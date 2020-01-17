@@ -1,19 +1,53 @@
 import autograd.numpy as np
 from Kernels import *
 from utils import *
+from Functions import *
+
 from Functions import Gibbs, GradGibbs
 
 
-def diffusion_resampling(U, grad_U, process, total_iter, tau, verbose=False, domain_enforcer=None):
+def diffusion_resampling(process, verbose=False, domain_enforcer=None):
     p_start = process["start"]
     p_gamma = process["gamma"]
     p_temperature = process["temperature"]
     p_num_particles = len(p_start)
     p_epsilon = process["epsilon"]
-    p_weight_func = process["weight_function"]
-    p_resample_func = process["resample_function"]
+    total_iter, tau = process["total_iter"], process["tau"]
 
     dim = len(p_start)
+
+    # get potential_function and gradient
+    if process["potential_function"]["name"] == "gaussian":
+        potential_params = process["potential_function"]["params"]
+        U = gaussian_sum(potential_params)
+        grad_U = grad_gaussian_sum(potential_params)
+    else:
+        raise ValueError("Does not support given function {}".format(process["name"]))
+
+    # get weight_function
+    if process["weight_function"]["name"] == "discounted_norm":
+        weight_gamma = process["weight_function"]["params"]["gamma"]
+        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
+                                                                                             weight_gamma)
+    else:
+        raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
+
+    # get resample_function
+    if process["resample_function"]["name"] == "softmax":
+        resample_beta = process["resample_function"]["params"]["beta"]
+        p_resample_func = lambda w, end_p: resample_positions_softmax(w, end_p, beta=resample_beta)
+    elif process["resample_function"]["name"] == "none":
+        p_resample_func = lambda w, end_p: end_p
+    else:
+        raise ValueError("Does not support given function {}".format(process["resample_function"]["name"]))
+
+    # get domain_enforcer
+    x_range = process["x_range"]
+    if process["domain_enforcer"]["name"] == "hyper_cube_enforcer":
+        domain_enforcer_strength = process["domain_enforcer"]["params"]["strength"]
+        domain_enforcer = hyper_cube_enforcer(x_range[0], x_range[1], domain_enforcer_strength)
+    else:
+        raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
 
     # init num_particles
     all_paths = []

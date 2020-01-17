@@ -1,5 +1,20 @@
 import autograd.numpy as np
 
+# diffusion stuff
+def resample_positions_softmax(weights, positions, beta=1):
+    probabilities = softmax(weights, beta)
+    pos_filter = np.random.choice(list(range(len(positions))), len(positions), p=probabilities)
+    return np.array(positions)[np.array(pos_filter)]
+
+def softmax(weights, beta=1):
+    sum_exp_weights = sum([np.exp(beta*w) for w in weights])
+    probabilities = np.array([np.exp(beta*w) for w in weights]) / sum_exp_weights
+    return probabilities
+
+def weight_function_discounted_norm(U, grad_U, x, curr_weights, gamma=1):
+    return gamma * curr_weights + np.linalg.norm(grad_U(x.T), axis=0)
+
+
 
 #define potential for second proccess
 def U_second(U, k, kernel, particles):
