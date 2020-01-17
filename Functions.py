@@ -145,8 +145,58 @@ def grad_flat_sharp_gaussian(inp):
     sharp_gaussian_grad = grad_multi_gaussian(0.7 * np.eye(dim))
     very_flat_gaussian_grad = grad_multi_gaussian(30 * np.eye(dim))  # to keep things rolling towards center
     return -(flat_gaussian_grad(inp, 5 * np.ones(dim)) + sharp_gaussian_grad(inp, -5 * np.ones(dim)) + 2*very_flat_gaussian_grad(inp,
-                                                                                                                np.zeros(
-                                                                                                                    dim)))
+                                                                                                                                 np.zeros(
+                                                                                                                                     dim)))
+
+def flat_sharp_hill_gaussian(inp):
+    dim = inp.shape[0]
+
+    flat_gaussian = multi_gaussian(10 * np.eye(dim))
+    sharp_gaussian = multi_gaussian(0.7 * np.eye(dim))
+    very_flat_gaussian = multi_gaussian(30 * np.eye(dim))  # to keep things rolling towards center
+    hill_gaussian = multi_gaussian(3 * np.eye(dim))
+    boundary_hill = multi_gaussian(0.5 * np.eye(dim))
+    return 5*boundary_hill(inp, -15*np.ones(dim)) + 5*boundary_hill(inp, 25*np.ones(dim)) + hill_gaussian(inp, 17.5 * np.ones(dim)) - (flat_gaussian(inp, 5 * np.ones(dim)) + sharp_gaussian(inp,
+                                                                                                             -5 * np.ones(
+                                                                                                                 dim)) + 2 * very_flat_gaussian(inp, np.zeros(dim)))
+def grad_flat_sharp_hill_gaussian(inp):
+    dim = inp.shape[0]
+
+    flat_gaussian_grad = grad_multi_gaussian(10 * np.eye(dim))
+    sharp_gaussian_grad = grad_multi_gaussian(0.7 * np.eye(dim))
+    very_flat_gaussian_grad = grad_multi_gaussian(30 * np.eye(dim))  # to keep things rolling towards center
+    hill_gaussian_grad = grad_multi_gaussian(3 * np.eye(dim))
+    boundary_hill_grad = grad_multi_gaussian(0.5 * np.eye(dim))
+    return 5*boundary_hill_grad(inp, -15*np.ones(dim)) + 5*boundary_hill_grad(inp, 25*np.ones(dim)) + hill_gaussian_grad(inp, 17.5 * np.ones(dim)) - (flat_gaussian_grad(inp, 5 * np.ones(dim)) + sharp_gaussian_grad(inp, -5 * np.ones(dim)) + 2*very_flat_gaussian_grad(inp,
+                                                                                                                                 np.zeros(
+                                                                                                                                     dim)))
+
+def gaussian_sum(params):
+    """params: array of tuples x_i s.t. x_i[0] = mean, x_i[1] = cov, x_i[2] = scale"""
+    assert len(params) > 0
+    def helper(inp):
+        dim = inp.shape[0]
+        res = 0
+        for i in range(len(params)):
+            temp_param = params[i]
+            res += temp_param[2] * multi_gaussian(temp_param[1] * np.eye(dim))(inp, temp_param[0] * np.ones(dim))
+        return res
+    return helper
+
+def grad_gaussian_sum(params):
+    """params: array of tuples x_i s.t. x_i[0] = mean, x_i[1] = cov, x_i[2] = scale"""
+    assert len(params) > 0
+    def helper(inp):
+        dim = inp.shape[0]
+        res = 0
+        for i in range(len(params)):
+            temp_param = params[i]
+            res += temp_param[2] * grad_multi_gaussian(temp_param[1] * np.eye(dim))(inp, temp_param[0] * np.ones(dim))
+        return res
+    return helper
+
+
+
 
 
 

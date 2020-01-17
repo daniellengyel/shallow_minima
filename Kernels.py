@@ -14,6 +14,14 @@ def multi_gaussian(cov):
             -0.5 * np.sum(diff*(np.linalg.inv(cov).dot(diff)), axis=0))
     return multi_gaussian_helper
 
+def multi_gaussian_unnormalized(cov):
+    def multi_gaussian_helper(inp, mu):
+        """same mu for every datapoint given in ipn"""
+        k = inp.shape[0]
+        diff = (inp.T - mu).T
+        return np.exp(-0.5 * np.sum(diff*(np.linalg.inv(cov).dot(diff)), axis=0))
+    return multi_gaussian_helper
+
 
 def grad_multi_gaussian(cov):
     def grad_gaussian_helper(inp, mu):

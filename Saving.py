@@ -256,12 +256,12 @@ def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name="", grap
         for j in range(tau):
 
             if density_function is not None:
-                fig = plt.figure(constrained_layout=True)
+                fig = plt.figure(figsize=(14, 10))
                 gs = fig.add_gridspec(4, 1)
                 ax = fig.add_subplot(gs[1:4, :])
                 ax2 = fig.add_subplot(gs[0, :])
             else:
-                fig = plt.figure()
+                fig = plt.figure(figsize=(14, 10))
                 ax = fig.add_subplot(1, 1, 1)
 
             if density_function is not None:
