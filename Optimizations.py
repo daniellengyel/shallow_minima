@@ -8,8 +8,8 @@ from Functions import Gibbs, GradGibbs
 
 def diffusion_resampling(process, verbose=False, domain_enforcer=None):
     p_start = process["start"]
-    p_gamma = process["gamma"]
-    p_temperature = process["temperature"]
+    p_gamma = lambda t: process["gamma"]
+    p_temperature = lambda t: process["temperature"]
     p_num_particles = len(p_start)
     p_epsilon = process["epsilon"]
     total_iter, tau = process["total_iter"], process["tau"]
@@ -17,12 +17,7 @@ def diffusion_resampling(process, verbose=False, domain_enforcer=None):
     dim = len(p_start)
 
     # get potential_function and gradient
-    if process["potential_function"]["name"] == "gaussian":
-        potential_params = process["potential_function"]["params"]
-        U = gaussian_sum(potential_params)
-        grad_U = grad_gaussian_sum(potential_params)
-    else:
-        raise ValueError("Does not support given function {}".format(process["name"]))
+    U, grad_U = get_potential(process)
 
     # get weight_function
     if process["weight_function"]["name"] == "discounted_norm":

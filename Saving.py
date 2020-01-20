@@ -5,7 +5,7 @@ import time, os, subprocess
 from scipy import stats
 
 import pickle
-
+import yaml
 
 def create_animation_pictures(path, X, Y, Z, graph_type="contour", graph_details={}):
     """
@@ -335,6 +335,18 @@ def create_animation_2d_pictures_particles_interaction(all_paths, X, Y, Z, folde
         plt.close(fig)
 
     return ani_path
+
+
+def remove_png(dir_path):
+    files = os.listdir(dir_path)
+    for item in files:
+        if item.endswith(".png"):
+            os.remove(os.path.join(dir_path, item))
+
+
+def save_config(dir_path, config):
+    with open(dir_path + "/process.yml", "w") as f:
+        yaml.dump(config, f, default_flow_style=False)
 
 
 

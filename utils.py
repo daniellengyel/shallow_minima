@@ -1,5 +1,19 @@
 import autograd.numpy as np
+from Functions import *
 
+# ------
+# Process util stuff
+def get_potential(process):
+    # get potential_function and gradient
+    if process["potential_function"]["name"] == "gaussian":
+        potential_params = process["potential_function"]["params"]
+        U = gaussian_sum(potential_params)
+        grad_U = grad_gaussian_sum(potential_params)
+    else:
+        raise ValueError("Does not support given function {}".format(process["name"]))
+    return U, grad_U
+
+# -------
 # diffusion stuff
 def resample_positions_softmax(weights, positions, beta=1):
     probabilities = softmax(weights, beta)
@@ -13,6 +27,8 @@ def softmax(weights, beta=1):
 
 def weight_function_discounted_norm(U, grad_U, x, curr_weights, gamma=1):
     return gamma * curr_weights + np.linalg.norm(grad_U(x.T), axis=0)
+
+
 
 
 
@@ -30,7 +46,6 @@ def grad_U_second(grad_U, k, grad_kernel, particles):
 # Approximating density with the particles
 def V(x, K, particles):
     N = len(particles)
-
     ret_sum = 0
     for p in particles:
         ret_sum += K(x, p)
