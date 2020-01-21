@@ -237,7 +237,7 @@ def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name="", grap
     """path: path[:, 0]=path_x, path[:, 1]=path_y"""
     if not os.path.isdir("./tmp"):
         os.mkdir("./tmp")
-    ani_path = "./tmp/1d_{0}_{1}".format(folder_name, time.time())
+    ani_path = "./tmp/1d_{0}_{1}".format(folder_name, time.strftime("%Y%m%d-%H%M%S"))
     os.mkdir(ani_path)
 
     available_colors = ["red", "green"]

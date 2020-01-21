@@ -9,9 +9,22 @@ def get_potential(process):
         potential_params = process["potential_function"]["params"]
         U = gaussian_sum(potential_params)
         grad_U = grad_gaussian_sum(potential_params)
+    elif process["potential_function"]["name"] == "Ackley":
+        U = AckleyProblem
+        grad_U = GradAckleyProblem
     else:
-        raise ValueError("Does not support given function {}".format(process["name"]))
+        raise ValueError("Does not support given function {}".format(process["potential_function"]["name"]))
     return U, grad_U
+
+
+def get_particles(process):
+    # get start_pos
+    if process["particle_init"]["name"] == "uniform":
+        num_particles = process["particle_init"]["num_particles"]
+        particles = [[np.random.uniform(process["x_range"][0], process["x_range"][1])] for _ in range(num_particles)]
+    else:
+        raise ValueError("Does not support given function {}".format(process["particle_init"]["name"]))
+    return particles
 
 # -------
 # diffusion stuff

@@ -7,7 +7,7 @@ from Functions import Gibbs, GradGibbs
 
 
 def diffusion_resampling(process, verbose=False, domain_enforcer=None):
-    p_start = process["start"]
+    p_start = get_particles(process)
     p_gamma = lambda t: process["gamma"]
     p_temperature = lambda t: process["temperature"]
     p_num_particles = len(p_start)
