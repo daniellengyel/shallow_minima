@@ -6,7 +6,7 @@ from Functions import *
 from Functions import Gibbs, GradGibbs
 
 
-def diffusion_resampling(process, verbose=False, domain_enforcer=None):
+def diffusion_resampling(process, return_full_path=True, verbose=False, domain_enforcer=None):
     p_start = get_particles(process)
     p_gamma = lambda t: process["gamma"]
     p_temperature = lambda t: process["temperature"]
@@ -64,10 +64,14 @@ def diffusion_resampling(process, verbose=False, domain_enforcer=None):
                 x_next, went_outside_domain = domain_enforcer(x_next)
 
             # ----
-            curr_paths = np.concatenate([curr_paths, x_next.reshape([curr_paths.shape[0], 1, curr_paths.shape[2]])], axis=1)
+            if return_full_path or (curr_paths.shape[1] == 1):
+                curr_paths = np.concatenate([curr_paths, x_next.reshape([curr_paths.shape[0], 1, curr_paths.shape[2]])], axis=1)
+            else:
+                curr_paths[:, -1] = x_next.reshape([curr_paths.shape[0], curr_paths.shape[2]])
 
             # weight update
             p_weights = p_weight_func(U, grad_U, x_curr, p_weights)
+
 
         # add paths
         all_paths.append(curr_paths)
