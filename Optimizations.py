@@ -20,7 +20,9 @@ def diffusion_resampling(process, verbose=False, domain_enforcer=None):
     U, grad_U = get_potential(process)
 
     # get weight_function
-    if process["weight_function"]["name"] == "discounted_norm":
+    if process["weight_function"]["name"] == "norm":
+        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights, 1)
+    elif process["weight_function"]["name"] == "discounted_norm":
         weight_gamma = process["weight_function"]["params"]["gamma"]
         p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
                                                                                              weight_gamma)

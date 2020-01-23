@@ -268,6 +268,8 @@ def create_animation_1d_pictures_particles(all_paths, X, Y, folder_name="", grap
                 Y_density = density_function(X, curr_paths[:, j, 0])
                 ax2.plot(X, Y_density)
 
+            fig.suptitle(folder_name, fontsize=20)
+
             ax.plot(X, Y)
             ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use, markersize=graph_details["p_size"])
 
