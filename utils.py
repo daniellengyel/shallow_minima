@@ -130,7 +130,6 @@ def percent_endpoint(x_star, end_points, epsilon):
 def filter_to_goal(x_star, epsilon, analytics):
     filter_distance = np.array([np.linalg.norm(p - x_star) < epsilon for p in analytics["end_point"].values
                                 ])
-
     return filter_distance
 
 def resample_positions_softmax(weights, positions, beta=1):
