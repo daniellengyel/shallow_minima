@@ -20,14 +20,7 @@ def diffusion_resampling(process, return_full_path=True, verbose=False, domain_e
     U, grad_U = get_potential(process)
 
     # get weight_function
-    if process["weight_function"]["name"] == "norm":
-        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights, 1)
-    elif process["weight_function"]["name"] == "discounted_norm":
-        weight_gamma = process["weight_function"]["params"]["gamma"]
-        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
-                                                                                             weight_gamma)
-    else:
-        raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
+    p_weight_func = get_weight_function(process)
 
     # get resample_function
     if process["resample_function"]["name"] == "softmax":
@@ -70,7 +63,7 @@ def diffusion_resampling(process, return_full_path=True, verbose=False, domain_e
                 curr_paths[:, -1] = x_next.reshape([curr_paths.shape[0], curr_paths.shape[2]])
 
             # weight update
-            p_weights = p_weight_func(U, grad_U, x_curr, p_weights)
+            p_weights = p_weight_func(U, grad_U, x_curr.T, p_weights)
 
 
         # add paths

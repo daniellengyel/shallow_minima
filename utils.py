@@ -26,6 +26,34 @@ def get_particles(process):
         raise ValueError("Does not support given function {}".format(process["particle_init"]["name"]))
     return particles
 
+
+def get_num_steps(process):
+    x_low, x_high, t_low, t_high = process["domain"]
+    num_x, num_t = (x_high - x_low) / float(delta_x), (t_high - t_low) / float(delta_t)
+    num_x, num_t = int(num_x) + 1, int(num_t) + 1
+    return num_x, num_t
+
+def get_weight_function(process):
+    if process["weight_function"]["name"] == "norm":
+        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights, 1)
+    elif process["weight_function"]["name"] == "discounted_norm":
+        weight_gamma = process["weight_function"]["params"]["gamma"]
+        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
+                                                                                             weight_gamma)
+    else:
+        raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
+    return p_weight_func
+
+
+def get_init_density(process):
+    # get start_pos
+    if process["density_init"]["name"] == "uniform":
+        delta_x = process["delta_x"]
+        num_x = get_num_steps(process)[0]
+        return np.array([[u_start(delta_x * i) for i in range(num_x)]])
+    else:
+        raise ValueError("Does not support given function {}".format(process["density_init"]["name"]))
+
 # -------
 # diffusion stuff
 def resample_positions_softmax(weights, positions, beta=1):
@@ -39,7 +67,7 @@ def softmax(weights, beta=1):
     return probabilities
 
 def weight_function_discounted_norm(U, grad_U, x, curr_weights, gamma=1):
-    return gamma * curr_weights + np.linalg.norm(grad_U(x.T), axis=0)
+    return gamma * curr_weights + np.linalg.norm(grad_U(x), axis=0)
 
 
 
