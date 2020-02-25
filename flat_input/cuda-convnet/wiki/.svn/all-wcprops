@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 22
+/svn/!svn/ver/562/wiki
+END
+ChangeLog.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/557/wiki/ChangeLog.wiki
+END
+Data.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 32
+/svn/!svn/ver/477/wiki/Data.wiki
+END
+Methodology.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/476/wiki/Methodology.wiki
+END
+NeuronTypes.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/491/wiki/NeuronTypes.wiki
+END
+Options.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/531/wiki/Options.wiki
+END
+CheckingGradients.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/399/wiki/CheckingGradients.wiki
+END
+ViewingNet.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/487/wiki/ViewingNet.wiki
+END
+LayerParams.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/553/wiki/LayerParams.wiki
+END
+Compiling.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/562/wiki/Compiling.wiki
+END
+TrainingNet.wiki
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/539/wiki/TrainingNet.wiki
+END

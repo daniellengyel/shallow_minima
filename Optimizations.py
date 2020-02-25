@@ -7,6 +7,8 @@ from Functions import Gibbs, GradGibbs
 
 
 def diffusion_resampling(process, return_full_path=True, verbose=False, domain_enforcer=None):
+    """Returns the paths of the particles in the format:
+    total_iter, num_particles, tau, dim"""
     p_start = get_particles(process)
     p_gamma = lambda t: process["gamma"]
     p_temperature = lambda t: process["temperature"]
@@ -23,13 +25,7 @@ def diffusion_resampling(process, return_full_path=True, verbose=False, domain_e
     p_weight_func = get_weight_function(process)
 
     # get resample_function
-    if process["resample_function"]["name"] == "softmax":
-        resample_beta = process["resample_function"]["params"]["beta"]
-        p_resample_func = lambda w, end_p: resample_positions_softmax(w, end_p, beta=resample_beta)
-    elif process["resample_function"]["name"] == "none":
-        p_resample_func = lambda w, end_p: end_p
-    else:
-        raise ValueError("Does not support given function {}".format(process["resample_function"]["name"]))
+    p_resample_func = get_resample_function(process)
 
     # get domain_enforcer
     x_range = process["x_range"]
