@@ -116,6 +116,57 @@ class ConcentricSphere(Dataset):
     def __len__(self):
         return len(self.data)
 
+class GaussianMixture(Dataset):
+    """Dataset gaussian mixture. Points of first gaussian are mapped to 0 while points in the second are mapped 1.
+
+    Parameters
+    ----------
+    num_1 : int
+        Number of points of first gaussian
+
+    num_1 : int
+        Number of points of second gaussian
+
+    mean_1 : np.array (1D)
+        Mean of first gaussian
+
+    mean_2 : np.array (1D)
+        Mean of second gaussian
+
+    cov_1 : np.array (2D, NxN)
+        Cov of first gaussian
+
+    cov_2 : np.array (2D, NxN)
+        Cov of second gaussian
+    """
+    def __init__(self, num_1, num_2, mean_1, mean_2, cov_1, cov_2):
+        self.num_1 = num_1
+        self.num_2 = num_2
+        self.mean_1 = mean_1
+        self.mean_2 = mean_2
+        self.cov_1 = cov_1
+        self.cov_2 = cov_2
+
+        self.data = []
+        self.targets = []
+
+
+        x1 = np.random.multivariate_normal(mean_1, cov_1, num_1)
+        y1 = np.zeros(num_1)
+        x2 = np.random.multivariate_normal(mean_2, cov_2, num_2)
+        y2 = np.ones(num_2)
+    
+        self.data = torch.Tensor(np.concatenate([x1, x2]))
+        self.targets = torch.Tensor(np.concatenate([y1, y2])).reshape(num_1 + num_2, 1)
+
+
+    def __getitem__(self, index):
+        return self.data[index], self.targets[index]
+
+    def __len__(self):
+        return len(self.data)
+
+
 
 class ShiftedSines(Dataset):
     """Dataset of two shifted sine curves. Points from the curve shifted upward
