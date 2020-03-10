@@ -17,11 +17,12 @@ def softmax(weights, beta=-1):
     return probabilities
 
 
-def weight_function(grad):
+def weight_function_input_jacobian(grad):
     input_shape = grad.shape  # batch, filters, x_dim, y_dim
     grad = grad.reshape((input_shape[0], np.product(input_shape[1:]))).T
 
     return np.sum(np.linalg.norm(grad, axis=0))
+
 
 
 def kish_effs(weights):
@@ -30,6 +31,24 @@ def kish_effs(weights):
     weights = np.array(weights)
     sum_weights = np.sum(weights)
     return 1/float(N) *  sum_weights**2 / weights.dot(weights)
+
+
+def get_params_vec(net):
+    list_params = list(net.parameters())
+    param_vec = [list_params[i].view(list_params[i].nelement()).detach().numpy() for i in range(len(list_params))]
+    return np.concatenate(param_vec, 0)
+
+def get_grad_params_vec(net):
+    list_params = list(net.parameters())
+    param_vec = [list_params[i].grad.view(list_params[i].nelement()).detach().numpy() for i in range(len(list_params))]
+    return np.concatenate(param_vec, 0)
+
+def get_params_var(nets):
+    nets_param_vecs = []
+    for net_idx in range(len(nets)):
+        param_vec = get_params_vec(nets[net_idx])
+        nets_param_vecs.append(param_vec)
+    return np.cov(np.array(nets_param_vecs))
 
 
 # Viz 

@@ -53,7 +53,7 @@ def train(config):
                             momentum=config["SGD_params"]["momentum"]) for i in range(num_nets)]
 
     # Set algorithm params
-    weight_type = "input_output_forbenius"
+    weight_type = config["weight_type"]
 
     # tau = 2500  # num batches before resampling
     beta = -40
@@ -93,20 +93,23 @@ def train(config):
                 loss.backward(retain_graph=True)
                 optimizer.step()
 
-                # zero the parameter gradients
-                optimizer.zero_grad()
-
-                # get input gradients
-                output_forb = torch.norm(outputs)
-                output_forb.backward()
-                input_grads = inputs.grad
-
                 # update weights
                 if weight_type == "input_output_forbenius":
-                    curr_weight = weight_function(input_grads)
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
+
+                    # get input gradients
+                    output_forb = torch.norm(outputs)
+                    output_forb.backward()
+                    input_grads = inputs.grad
+
+                    curr_weight = weight_function_input_jacobian(input_grads)
                     nets_weights[idx_net] += curr_weight
                 elif weight_type == "loss_gradient_weights":
-                    pass
+
+                    param_grads = get_grad_params_vec(net)
+                    curr_weight = np.linalg.norm(param_grads)
+                    nets_weights[idx_net] += curr_weight
                 else:
                     raise NotImplementedError()
 
@@ -118,8 +121,12 @@ def train(config):
 
             writer.add_scalar('Kish/', kish_effs(nets_weights), i + epoch*len(train_loader))
 
+            # Get variation of network weights
+            writer.add_scalar('WeightVarTrace/', np.trace(get_params_var(nets)), i + epoch*len(train_loader))
+
+
             # Check resample
-            if kish_effs(nets_weights) < 0.95:
+            if kish_effs(nets_weights) < config["ess_threshold"]:
                 # resample particles
                 sampled_idx = sample_index_softmax(nets_weights, nets, beta=beta)
                 # init nets etc
