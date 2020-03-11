@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import torch
+
 
 # algorithm 
 
@@ -48,6 +51,8 @@ def get_params_var(nets):
     for net_idx in range(len(nets)):
         param_vec = get_params_vec(nets[net_idx])
         nets_param_vecs.append(param_vec)
+    if len(nets) == 1:
+        return np.cov(np.array(nets_param_vecs)).reshape(1,1)
     return np.cov(np.array(nets_param_vecs))
 
 
