@@ -34,7 +34,7 @@ def get_particles(process):
         particles = [[np.random.uniform(x_low, x_high), np.random.uniform(x_low, x_high)] for _ in range(num_particles)]
     else:
         raise ValueError("Does not support given function {}".format(process["particle_init"]["name"]))
-    return particles
+    return np.array(particles)
 
 def get_resample_function(process):
     if process["resample_function"]["name"] == "softmax":
@@ -68,16 +68,16 @@ def get_num_steps(process):
     num_x, num_t = int(num_x) + 1, int(num_t) + 1
     return num_x, num_t
 
-def get_weight_function(process):
-    if process["weight_function"]["name"] == "norm":
-        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights, 1)
-    elif process["weight_function"]["name"] == "discounted_norm":
-        weight_gamma = process["weight_function"]["params"]["gamma"]
-        p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
-                                                                                             weight_gamma)
-    else:
-        raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
-    return p_weight_func
+# def get_weight_function(process):
+#     if process["weight_function"]["name"] == "norm":
+#         p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights, 1)
+#     elif process["weight_function"]["name"] == "discounted_norm":
+#         weight_gamma = process["weight_function"]["params"]["gamma"]
+#         p_weight_func = lambda U, grad_U, x, curr_weights: weight_function_discounted_norm(U, grad_U, x, curr_weights,
+#                                                                                              weight_gamma)
+#     else:
+#         raise ValueError("Does not support given function {}".format(process["weight_function"]["name"]))
+#     return p_weight_func
 
 
 def get_init_density(process):
@@ -97,15 +97,25 @@ def resample_positions_softmax(weights, positions, beta=1):
     return np.array(positions)[np.array(pos_filter)]
 
 def softmax(weights, beta=1):
+    weights /= np.sum(weights)
+
     sum_exp_weights = sum([np.exp(beta*w) for w in weights])
+    print(sum_exp_weights)
     probabilities = np.array([np.exp(beta*w) for w in weights]) / sum_exp_weights
     return probabilities
 
 def weight_function_discounted_norm(U, grad_U, x, curr_weights, gamma=1, partials=None):
-    grad = grad_U(x.T)
+    grad = grad_U(x)
     if partials is not None:
         grad = grad[partials]
     return gamma * curr_weights + np.linalg.norm(grad, axis=0)
+
+def kish_effs(weights):
+    """Assume weights are just a list of numbers"""
+    N = len(weights)
+    weights = np.array(weights)
+    sum_weights = np.sum(weights)
+    return 1/float(N) *  sum_weights**2 / weights.dot(weights)
 
 
 #define potential for second proccess

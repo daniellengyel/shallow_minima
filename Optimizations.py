@@ -61,6 +61,7 @@ def diffusion_resampling(process, return_full_path=True, verbose=False, domain_e
             # weight update
             p_weights = p_weight_func(U, grad_U, x_curr.T, p_weights)
 
+        print(kish_effs(p_weights))
 
         # add paths
         all_paths.append(curr_paths)
@@ -73,6 +74,7 @@ def diffusion_resampling(process, return_full_path=True, verbose=False, domain_e
         p_weights = np.zeros(len(p_start))
 
     return np.array(all_paths)
+
 
 
 def grad_descent(func, grad_func, x_curr, eps, gamma, start_t=0, end_t=float("inf"), verbose=False, domain_enforcer=None):

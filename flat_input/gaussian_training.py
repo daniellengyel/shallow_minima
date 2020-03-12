@@ -8,26 +8,23 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 from utils import *
-from nets.Nets import LeNet
+from nets.Nets import SimpleNet
+
+from torch.utils.data import DataLoader
+from viz.plots import single_feature_plt
+from experiments.dataloaders import GaussianMixture
 
 def get_data(config):
-    train_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('./data/', train=True, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ])),
-        batch_size=config["batch_size"]["train_size"], shuffle=True)
+    means = config["data"]["params"]["means"]
+    covs = config["data"]["params"]["covs"]
+    nums = config["data"]["params"]["nums"]
 
-    test_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('./data/', train=False, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ])),
-        batch_size=config["batch_size"]["test_size"], shuffle=True)
+
+    training_gaussian = GaussianMixture(means, covs, len(means) * [nums[0]])
+    test_gaussian = GaussianMixture(means, covs, len(means) * [nums[1]])
+
+    train_loader = DataLoader(training_gaussian, batch_size=config["batch_size"]["train_size"], shuffle=True)
+    test_loader = DataLoader(test_gaussian, batch_size=config["batch_size"]["test_size"], shuffle=True)
 
     return train_loader, test_loader
 
@@ -44,7 +41,8 @@ def train(config):
 
     # Init neural nets and weights
     num_nets = config["num_nets"]
-    nets = [LeNet() for _ in range(num_nets)]
+    net_params = config["net"]["params"]
+    nets = [SimpleNet(*net_params) for _ in range(num_nets)]
     nets_weights = np.zeros(num_nets)
 
     #  Define a Loss function and optimizer
@@ -55,8 +53,7 @@ def train(config):
     # Set algorithm params
     weight_type = config["weight_type"]
 
-    # tau = 2500  # num batches before resampling
-    beta = -40
+    beta = config["softmax_beta"]
 
     writer = SummaryWriter()
 
