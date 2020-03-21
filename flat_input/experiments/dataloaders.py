@@ -53,7 +53,7 @@ class Data1D(Dataset):
             self.targets.append(torch.Tensor([target]))
 
     def __getitem__(self, index):
-        return self.data[index], self.targets[index]
+        return self.data[index].Long(), self.targets[index].Long()
 
     def __len__(self):
         return self.num_points
@@ -111,7 +111,7 @@ class ConcentricSphere(Dataset):
 
 
     def __getitem__(self, index):
-        return self.data[index], self.targets[index]
+        return self.data[index], self.targets[index].long()
 
     def __len__(self):
         return len(self.data)
@@ -121,47 +121,39 @@ class GaussianMixture(Dataset):
 
     Parameters
     ----------
-    num_1 : int
-        Number of points of first gaussian
-
-    num_1 : int
-        Number of points of second gaussian
-
-    mean_1 : np.array (1D)
-        Mean of first gaussian
-
-    mean_2 : np.array (1D)
-        Mean of second gaussian
-
-    cov_1 : np.array (2D, NxN)
-        Cov of first gaussian
-
-    cov_2 : np.array (2D, NxN)
-        Cov of second gaussian
+    means:
+        i: mean
+    covs:
+        i: cov
+    nums:
+        i: num for ith class
     """
-    def __init__(self, num_1, num_2, mean_1, mean_2, cov_1, cov_2):
-        self.num_1 = num_1
-        self.num_2 = num_2
-        self.mean_1 = mean_1
-        self.mean_2 = mean_2
-        self.cov_1 = cov_1
-        self.cov_2 = cov_2
-
+    def __init__(self, means, covs, nums):
         self.data = []
         self.targets = []
 
+        self.num_classes = len(covs)
 
-        x1 = np.random.multivariate_normal(mean_1, cov_1, num_1)
-        y1 = np.zeros(num_1)
-        x2 = np.random.multivariate_normal(mean_2, cov_2, num_2)
-        y2 = np.ones(num_2)
-    
-        self.data = torch.Tensor(np.concatenate([x1, x2]))
-        self.targets = torch.Tensor(np.concatenate([y1, y2])).reshape(num_1 + num_2, 1)
+        xs = None
+        ys = []
+        for i in range(len(covs)):
+            mean = means[i]
+            cov = covs[i]
+            num = nums[i]
+            x = np.random.multivariate_normal(mean, cov, num)
+            if xs is None:
+                xs = x
+            else:
+                xs = np.concatenate([xs, x], axis=0)
+            ys += num * [i]
 
+        self.data = torch.Tensor(xs)
+
+        targets = np.array(ys) #np.eye(self.num_classes)[ys]
+        self.targets = torch.Tensor(targets)
 
     def __getitem__(self, index):
-        return self.data[index], self.targets[index]
+        return self.data[index], self.targets[index].long()
 
     def __len__(self):
         return len(self.data)

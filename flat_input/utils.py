@@ -2,6 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
+from experiments.dataloaders import *
+
+import datetime
+import socket
+
+def get_file_stamp():
+    """Return time and hostname as string for saving files related to the current experiment"""
+    host_name = socket.gethostname()
+    mydate = datetime.datetime.now()
+    return "{}_{}".format(mydate.strftime("%b%d_%H-%M-%S"), host_name)
 
 # algorithm 
 
@@ -138,5 +148,12 @@ def imshow(img):
 def get_average_output(nets, inp):
     outs = [net(inp).detach().numpy() for net in nets]
     return np.mean(outs, axis=0)
+
+def get_gaussian_data(means, covs, train_nums, test_nums):
+
+    train_gaussian = GaussianMixture(means, covs, len(means) * [train_nums])
+    test_gaussian = GaussianMixture(means, covs, len(means) * [test_nums])
+
+    return train_gaussian, test_gaussian
     
 

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
+import copy, yaml
 import torch
 import torchvision
 import torch.optim as optim
@@ -8,65 +8,57 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 from utils import *
-from nets.Nets import LeNet
+from nets.Nets import SimpleNet
 
-def get_data(config):
-    train_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('./data/', train=True, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ])),
-        batch_size=config["batch_size"]["train_size"], shuffle=True)
+from torch.utils.data import DataLoader
+from viz.plots import single_feature_plt
+from experiments.dataloaders import GaussianMixture
 
-    test_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('./data/', train=False, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ])),
-        batch_size=config["batch_size"]["test_size"], shuffle=True)
-
-    return train_loader, test_loader
+import os, time
 
 
-def train(config):
+def train(data, config, folder_path):
     # init torch
     torch.backends.cudnn.enabled = False
     if config["torch_random_seed"] is not None:
         torch.manual_seed(config["torch_random_seed"])
 
     # get data
-    train_loader, test_loader = get_data(config)
+    train_loader = DataLoader(data[0], batch_size=config["batch_train_size"], shuffle=True)
+    test_loader = DataLoader(data[1], batch_size=config["batch_test_size"], shuffle=True)
 
 
     # Init neural nets and weights
     num_nets = config["num_nets"]
-    nets = [LeNet() for _ in range(num_nets)]
+    net_params = config["net_params"]
+    nets = [SimpleNet(*net_params) for _ in range(num_nets)]
     nets_weights = np.zeros(num_nets)
 
     #  Define a Loss function and optimizer
     criterion = torch.nn.CrossEntropyLoss()
-    optimizers = [optim.SGD(nets[i].parameters(), lr=config["SGD_params"]["learning_rate"],
-                            momentum=config["SGD_params"]["momentum"]) for i in range(num_nets)]
+    optimizers = [optim.SGD(nets[i].parameters(), lr=config["learning_rate"],
+                            momentum=config["momentum"]) for i in range(num_nets)]
 
     # Set algorithm params
     weight_type = config["weight_type"]
 
-    # tau = 2500  # num batches before resampling
-    beta = -40
+    beta = config["softmax_beta"]
 
-    writer = SummaryWriter()
-
-    # get train loaders for each net
-    net_data_loaders = [iter(enumerate(train_loader, 0)) for _ in range(num_nets)]
+    # init saving
+    file_stamp = time.time() #get_file_stamp()
+    writer = SummaryWriter("{}/runs/{}".format(folder_path, file_stamp))
+    os.makedirs("{}/models/{}".format(folder_path, file_stamp))
+    with open("{}/runs/{}/{}".format(folder_path, file_stamp, "config.yml"), "w") as f:
+        yaml.dump(config, f, default_flow_style=False)
 
     # train
     for epoch in range(config["num_epochs"]):
+        # get train loaders for each net
+        net_data_loaders = [iter(enumerate(train_loader, 0)) for _ in range(num_nets)]
+
         is_training_epoch = True
         while is_training_epoch:
+            # TODO make inner loop a function. That way we can have different methods of looping over data.
             for idx_net in range(num_nets):
                 # get net and optimizer
                 net = nets[idx_net]
@@ -79,7 +71,6 @@ def train(config):
                     is_training_epoch = False
                     break
                 inputs, labels = data
-                labels = labels.reshape(len(labels)).long()
 
                 # Compute gradients for input.
                 inputs.requires_grad = True
@@ -114,9 +105,10 @@ def train(config):
                     raise NotImplementedError()
 
                 # store training accuracy current
-                writer.add_scalar('Loss/train/net {}'.format(idx_net), loss, i + epoch*len(train_loader))
+                writer.add_scalar('Loss/train/net_{}'.format(idx_net), loss, i + epoch*len(train_loader))
 
-                writer.add_scalar('Weight/net {}'.format(idx_net), curr_weight, i + epoch*len(train_loader))
+                writer.add_scalar('Potential/curr/net_{}'.format(idx_net), curr_weight, i + epoch*len(train_loader))
+                writer.add_scalar('Potential/total/net_{}'.format(idx_net), nets_weights[idx_net], i + epoch*len(train_loader))
 
 
             writer.add_scalar('Kish/', kish_effs(nets_weights), i + epoch*len(train_loader))
@@ -131,28 +123,28 @@ def train(config):
                 sampled_idx = sample_index_softmax(nets_weights, nets, beta=beta)
                 # init nets etc
                 nets = [copy.deepcopy(nets[i]) for i in sampled_idx]
-                optimizers = [optim.SGD(nets[i].parameters(), lr=config["SGD_params"]["learning_rate"],
-                                        momentum=config["SGD_params"]["momentum"]) for i in range(num_nets)]
+                optimizers = [optim.SGD(nets[i].parameters(), lr=config["learning_rate"],
+                                        momentum=config["momentum"]) for i in range(num_nets)]
                 nets_weights = np.zeros(num_nets)
-                print(sampled_idx)
+                # TODO save which models got swapped how
 
         # get test error
-        correct = 0
-        _sum = 0
+        for idx_net in range(num_nets):
+            correct = 0
+            _sum = 0
 
-        for idx, (test_x, test_label) in enumerate(test_loader):
-            predict_y = nets[0](test_x.float()).detach()
-            predict_ys = np.argmax(predict_y, axis=-1)
-            label_np = test_label.numpy()
-            _ = predict_ys == test_label
-            correct += np.sum(_.numpy(), axis=-1)
-            _sum += _.shape[0]
+            for idx, (test_x, test_label) in enumerate(test_loader):
+                predict_y = nets[idx_net](test_x.float()).detach()
+                predict_ys = np.argmax(predict_y, axis=-1)
+                label_np = test_label.numpy()
+                _ = predict_ys == test_label
+                correct += np.sum(_.numpy(), axis=-1)
+                _sum += _.shape[0]
 
-        print('accuracy: {:.2f}'.format(correct / _sum))
-        torch.save(nets[0], 'models/mnist_{:.2f}.pkl'.format(correct / _sum))
+                writer.add_scalar('Accuracy/net_{}'.format(idx_net), correct / _sum, epoch*len(train_loader) + i)
 
-        # get train loaders for each net
-        net_data_loaders = [iter(enumerate(train_loader, 0)) for _ in range(num_nets)]
+        for idx_net in range(num_nets):
+            torch.save(nets[idx_net], '{}/models/{}/net_{}_step_{}.pkl'.format(folder_path, file_stamp, idx_net, epoch*len(train_loader) + i))
 
 
 

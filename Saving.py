@@ -321,6 +321,8 @@ def create_animation_2d_pictures_particles(all_paths, X, Y, Z, folder_name="", g
                 else:
                     ax2.imshow(Z_density, cmap=plt.cm.gist_earth_r, extent=[X[0], X[-1], Y[-1], Y[0]],
                               interpolation=graph_details["interpolation"])
+            else:
+                ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use, markersize=graph_details["p_size"])
 
             fig.suptitle(folder_name, fontsize=20)
 
@@ -330,7 +332,6 @@ def create_animation_2d_pictures_particles(all_paths, X, Y, Z, folder_name="", g
                 ax.imshow(Z, cmap=plt.cm.gist_earth_r, extent=[X[0], X[-1], Y[-1], Y[0]],
                           interpolation=graph_details["interpolation"])
 
-            # ax.plot(curr_paths[:, j, 0], curr_paths[:, j, 1], "o", color=color_use, markersize=graph_details["p_size"])
 
             plt.savefig(ani_path + "/{}.png".format(i * tau + j))
 

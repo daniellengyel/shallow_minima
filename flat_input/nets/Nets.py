@@ -43,15 +43,11 @@ class LeNet(Module):
 
 
 class SimpleNet(Module):
-    def __init__(self):
+    def __init__(self, inp_dim, out_dim, width, num_layers):
         super(SimpleNet, self).__init__()
 
-        inp_dim = 1  # 30
-        out_dim = 1
-        width = 1028
-        num_layers = 0
         self.fc1 = nn.Linear(inp_dim, width)
-        self.layers = [nn.Linear(width, width) for _ in range(num_layers)]
+        self.layers = [nn.Linear(width, width) for _ in range(num_layers - 1)]
         self.fc2 = nn.Linear(width, out_dim)
 
     def forward(self, x):

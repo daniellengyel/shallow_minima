@@ -1,2 +1,7 @@
 tmp/
 flat_input/data/
+flat_input/gaussian_experiments/
+flat_input/models/
+flat_input/runs/
+
+
